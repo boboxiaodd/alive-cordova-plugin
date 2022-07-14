@@ -18,6 +18,8 @@
 
 @property (nonatomic, strong) NSString *bussnessId;
 
+@property (nonatomic, strong) UIImageView * cameraImage;
+
 @end
 
 @implementation NTESLiveCameraImage
@@ -61,12 +63,12 @@
         
     }
     
-    UIImageView *cameraImage = [[UIImageView alloc] initWithFrame:CGRectMake(x, y, width, height)];
-    cameraImage.layer.cornerRadius = cornerRadius;
-    cameraImage.layer.masksToBounds = YES;
-    self.detector = [[NTESLiveDetectManager alloc] initWithImageView:cameraImage withDetectSensit:NTESSensitNormal];
+    _cameraImage = [[UIImageView alloc] initWithFrame:CGRectMake(x, y, width, height)];
+    _cameraImage.layer.cornerRadius = cornerRadius;
+    _cameraImage.layer.masksToBounds = YES;
+    self.detector = [[NTESLiveDetectManager alloc] initWithImageView:_cameraImage withDetectSensit:NTESSensitNormal];
     [self.detector setTimeoutInterval:timeout];
-    [self.webView.superview insertSubview:cameraImage aboveSubview:self.webView];
+    [self.webView.superview insertSubview:_cameraImage aboveSubview:self.webView];
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(liveDetectStatusChange:) name:@"NTESLDNotificationStatusChange" object:nil];
 }
@@ -76,24 +78,26 @@
        
     __weak __typeof(self)weakSelf = self;
     [self.detector startLiveDetectWithBusinessID:self.bussnessId actionsHandler:^(NSDictionary * _Nonnull params) {
-            dispatch_async(dispatch_get_main_queue(), ^{
+        dispatch_async(dispatch_get_main_queue(), ^{
             NSString *actions = [params objectForKey:@"actions"];
             NSMutableDictionary *dict = [NSMutableDictionary dictionary];
             [dict setValue:actions forKey:@"action_commands"];
                 weakSelf.pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dict];
                 [weakSelf.pluginResult setKeepCallbackAsBool:YES];
                 [weakSelf.commandDelegate sendPluginResult:weakSelf.pluginResult callbackId:command.callbackId];
-        });
-    } completionHandler:^(NTESLDStatus status, NSDictionary * _Nullable params) {
-        dispatch_async(dispatch_get_main_queue(), ^{
-            NSMutableDictionary *dict = [weakSelf showToastWithLiveDetectStatus:status];
-            NSString *token = [params objectForKey:@"token"];
-            [dict setValue:token forKey:@"token"];
-            weakSelf.pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dict];
-            [weakSelf.pluginResult setKeepCallbackAsBool:YES];
-            [weakSelf.commandDelegate sendPluginResult:weakSelf.pluginResult callbackId:command.callbackId];
-        });
-    }];
+            });
+        } checkingHandler:^{
+            
+        } completionHandler:^(NTESLDStatus status, NSDictionary * _Nullable params) {
+            dispatch_async(dispatch_get_main_queue(), ^{
+                NSMutableDictionary *dict = [weakSelf showToastWithLiveDetectStatus:status];
+                NSString *token = [params objectForKey:@"token"];
+                [dict setValue:token forKey:@"token"];
+                weakSelf.pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dict];
+                [weakSelf.pluginResult setKeepCallbackAsBool:YES];
+                [weakSelf.commandDelegate sendPluginResult:weakSelf.pluginResult callbackId:command.callbackId];
+            });
+        }];
 }
 
 - (void)liveDetectStatusChange:(NSNotification *)infoNotification {
@@ -164,6 +168,7 @@
 
 - (void)stopDetect:(CDVInvokedUrlCommand*)command {
     dispatch_async(dispatch_get_main_queue(), ^{
+        [self.cameraImage removeFromSuperview];
         [self.detector stopLiveDetect];
     });
 }
@@ -241,8 +246,3 @@
 }
 
 @end
-
-
-
-
-

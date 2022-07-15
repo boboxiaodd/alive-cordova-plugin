@@ -60,8 +60,5 @@
            <pod name="NTESLiveDetect" />
          </pods>
        </podspec>
-       <config-file target="*-Info.plist" parent="NSCameraUsageDescription">
-          <string>使用相机</string>
-        </config-file>
     </platform>
 </plugin>

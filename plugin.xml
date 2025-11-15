@@ -14,6 +14,13 @@
 
       <header-file src="src/ios/NTESLiveCameraImage.h" />
       <source-file src="src/ios/NTESLiveCameraImage.mm" />
-      
+      <podspec>
+         <config>
+           <source url="https://github.com/CocoaPods/Specs.git"/>
+         </config>
+         <pods>
+           <pod name="NTESLiveDetect" />
+         </pods>
+       </podspec>
     </platform>
 </plugin>
